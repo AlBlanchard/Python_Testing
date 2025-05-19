@@ -1,3 +1,19 @@
+### Issue 1 – Sur-réservation possible
+
+**Description**  
+Empêcher un club de réserver plus de places que disponibles.
+
+**Correction**  
+Dans `/purchasePlaces`, ajout d’une condition `if placesRequired > available`  
+=> `flash("You cannot book more than {available} places for this competition.")`.
+
+**Test QA**  
+`test_cannot_book_more_than_available` dans `tests/test_reservations.py`
+
+**Vérification manuelle**  
+Tentative de réservation de 9 places pour 5 disponibles → message d’erreur affiché et nombre inchangé.
+
+
 ### Issue 4 – Réservation pour une compétition passée
 
 **Description** :  
