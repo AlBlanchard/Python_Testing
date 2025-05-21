@@ -57,3 +57,20 @@ Ajout d'une vérification dans la route `/book/<competition>/<club>` comparant l
 
 **Vérification manuelle** :  
 OK – Message d'erreur visible dans l'interface, réservation
+
+
+### Issue 5 – Plantage pour email inconnu
+
+**Description**  
+L’app crashait en 500 dès la page de login si l'email n'existait pas dans `clubs.json`.
+
+**Correction**  
+Dans `/showSummary` :  
+- Recherche la liste `matching_clubs`  
+- En cas de liste vide => `flash("Unknown email.")` + `redirect(url_for("index"))`
+
+**Test QA**  
+`test_unknown_email_redirects_to_index` dans `tests/test_auth.py`
+
+**Vérification manuelle**  
+Tentative de login avec `no-such@club.com` → redirection vers la page d'accueil et message "Unknown email." affiché.
