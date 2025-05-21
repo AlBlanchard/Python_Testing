@@ -15,7 +15,13 @@
         {% endfor %}
        </ul>
     {% endif%}
+
+    <nav>
+        <a href="{{ url_for('showPoints') }}">Voir le classement des points</a>
+    </nav>
+
     Points available: {{club['points']}}
+    
     <h3>Competitions:</h3>
     <ul>
         {% for comp in competitions%}

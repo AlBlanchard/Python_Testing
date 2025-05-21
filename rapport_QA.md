@@ -89,3 +89,19 @@ Après une réservation réussie, le nombre de points du club n’était pas mis
 - Le template `welcome.html` affiche désormais systématiquement  
   ```
   Points available: {{ club["points"] }}
+
+### Issue 7 (Feature) – Tableau des points
+
+**Description**  
+Page `/points` listant tous les clubs et leurs points, triés par points décroissants.
+
+**Implémentation**  
+- Route Flask `showPoints()`  
+- Template `points.html`  
+- Lien depuis la page summary (`welcome.html`)
+
+**Test QA**  
+`tests/test_points_board.py` => vérifie le 200 et la présence de chaque club + points
+
+**Vérification manuelle**  
+Ouvrir `/points` et s’assurer que la liste correspond aux données de `clubs.json`.
