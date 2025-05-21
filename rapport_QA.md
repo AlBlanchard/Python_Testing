@@ -74,3 +74,18 @@ Dans `/showSummary` :
 
 **Vérification manuelle**  
 Tentative de login avec `no-such@club.com` → redirection vers la page d'accueil et message "Unknown email." affiché.
+
+### Issue 6 – Mise à jour des points
+
+**Description**  
+Après une réservation réussie, le nombre de points du club n’était pas mis à jour à l’affichage : l’utilisateur continuait de voir son ancien solde.
+
+**Correction**  
+- Dans `purchasePlaces` :  
+  - Calcul de `points_required = placesRequired * 3`  
+  - Vérification `if points_required > club_points` pour bloquer les cas d’insuffisance  
+  - Après validation, mise à jour de `club["points"] = str(club_points - points_required)`  
+  - `flash("Great—booking complete!")` puis `render_template("welcome.html", ...)`  
+- Le template `welcome.html` affiche désormais systématiquement  
+  ```
+  Points available: {{ club["points"] }}
