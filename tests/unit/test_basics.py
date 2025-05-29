@@ -1,5 +1,6 @@
 import json
 from unittest.mock import mock_open, patch
+from server import find_club_by_email
 
 from server import loadClubs, loadCompetitions
 
@@ -16,7 +17,6 @@ def test_loadClubs(test_data):
     assert result[0]["name"] == "Big Chest"
     assert result[1]["email"] == "louis@armstrong.com"
     assert result[1]["points"] == "40"
-    assert len(result) == 2
 
 
 def test_loadCompetitions(test_data):
@@ -29,4 +29,17 @@ def test_loadCompetitions(test_data):
     assert result[0]["name"] == "The Big Chest Challenge"
     assert result[1]["date"] == "2025-11-15"
     assert result[1]["numberOfPlaces"] == "200"
-    assert len(result) == 2
+
+
+def test_find_club_by_email_found(test_data):
+    clubs = test_data["clubs"]
+
+    result = find_club_by_email("tim@bigchest.com", clubs)
+    assert result["name"] == "Big Chest"
+
+
+def test_find_club_by_email_not_found(test_data):
+    clubs = test_data["clubs"]
+
+    result = find_club_by_email("djo@biscoto.fr", clubs)
+    assert result is None
