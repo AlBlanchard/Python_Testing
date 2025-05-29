@@ -1,5 +1,6 @@
 import pytest
 from unittest.mock import patch
+from tests.utils import login_dashboard
 
 
 def test_index_route(client):
@@ -11,23 +12,10 @@ def test_index_route(client):
 def test_show_summary_route(client, test_data):
     email = test_data["clubs"][1]["email"]
 
-    # Les données étant définis à l'exterieur de la fonction dans server.py,
-    # nous devons les patcher pour simuler le comportement attendu
-    with patch("server.clubs", test_data["clubs"]), patch(
-        "server.competitions", test_data["competitions"]
-    ):
-
-        response = client.post("/showSummary", data={"email": email})
+    response = login_dashboard(client, email, test_data)
 
     assert response.status_code == 200
     assert b"Welcome, louis@armstrong.com" in response.data
-
-
-# Test pour le fix de l'app qui plante, sera mis en place dans la branche dédiée
-# def test_show_summary_route_invalid_email(client):
-#    response = client.post("/showSummary", data={"email": "unknow@noexist.com"})
-#    assert response.status_code == 200
-#    assert b"Welcome" not in response.data
 
 
 def test_book_route_success(client, test_data):
