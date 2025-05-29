@@ -1,51 +1,131 @@
-# gudlift-registration
+# Gudlift Registration
 
-1. Why
+## 1. Overview
 
+This is a **proof of concept (PoC)** for a lightweight competition booking platform.  
+The goal is to keep things minimal, efficient, and easy to iterate based on user feedback.
 
-    This is a proof of concept (POC) project to show a light-weight version of our competition booking platform. The aim is the keep things as light as possible, and use feedback from the users to iterate.
+---
 
-2. Getting Started
+## 2. Technologies Used
 
-    This project uses the following technologies:
+- **Python 3.x+**
+- **[Flask](https://flask.palletsprojects.com/)** – lightweight and flexible web framework
+- **[Virtualenv](https://virtualenv.pypa.io/)** – to manage Python environments
 
-    * Python v3.x+
+We use JSON files for data instead of a database, to keep the project light during this phase.
 
-    * [Flask](https://flask.palletsprojects.com/en/1.1.x/)
+---
 
-        Whereas Django does a lot of things for us out of the box, Flask allows us to add only what we need. 
-     
+## 3. Getting Started
 
-    * [Virtual environment](https://virtualenv.pypa.io/en/stable/installation.html)
+### Step-by-step installation:
 
-        This ensures you'll be able to install the correct packages without interfering with Python on your machine.
+1. **Clone the repository**  
+   ```bash
+   git clone https://github.com/AlBlanchard/Python_Testing.git
+   cd PYTHON_TESTING
+   ```
 
-        Before you begin, please ensure you have this installed globally. 
+2. **Create a virtual environment**  
+   ```bash
+   python -m venv venv
+   ```
 
+3. **Activate the virtual environment**
 
-3. Installation
+   - On **Linux/macOS**:
+     ```bash
+     source venv/bin/activate
+     ```
 
-    - After cloning, change into the directory and type <code>virtualenv .</code>. This will then set up a a virtual python environment within that directory.
+   - On **Windows**:
+     ```bash
+     .\venv\Scripts\activate
+     ```
 
-    - Next, type <code>source bin/activate</code>. You should see that your command prompt has changed to the name of the folder. This means that you can install packages in here without affecting affecting files outside. To deactivate, type <code>deactivate</code>
+4. **Install dependencies**  
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-    - Rather than hunting around for the packages you need, you can install in one step. Type <code>pip install -r requirements.txt</code>. This will install all the packages listed in the respective file. If you install a package, make sure others know by updating the requirements.txt file. An easy way to do this is <code>pip freeze > requirements.txt</code>
+5. **Run the Flask app** (no extra dependency required):
 
-    - Flask requires that you set an environmental variable to the python file. However you do that, you'll want to set the file to be <code>server.py</code>. Check [here](https://flask.palletsprojects.com/en/1.1.x/quickstart/#a-minimal-application) for more details
+   - On **Linux/macOS**:
+     ```bash
+     export FLASK_APP=server.py
+     export FLASK_ENV=development
+     flask run
+     ```
 
-    - You should now be ready to test the application. In the directory, type either <code>flask run</code> or <code>python -m flask run</code>. The app should respond with an address you should be able to go to using your browser.
+   - On **Windows CMD**:
+     ```cmd
+     set FLASK_APP=server.py
+     set FLASK_ENV=development
+     flask run
+     ```
 
-4. Current Setup
+   - On **Windows PowerShell**:
+     ```powershell
+     $env:FLASK_APP = "server.py"
+     $env:FLASK_ENV = "development"
+     flask run
+     ```
 
-    The app is powered by [JSON files](https://www.tutorialspoint.com/json/json_quick_guide.htm). This is to get around having a DB until we actually need one. The main ones are:
-     
-    * competitions.json - list of competitions
-    * clubs.json - list of clubs with relevant information. You can look here to see what email addresses the app will accept for login.
+Once running, open the provided local URL (usually `http://127.0.0.1:5000`) in your browser.
 
-5. Testing
+> Important: No `.env` or external configuration manager is required. Keep it simple and native.
 
-    You are free to use whatever testing framework you like-the main thing is that you can show what tests you are using.
+---
 
-    We also like to show how well we're testing, so there's a module called 
-    [coverage](https://coverage.readthedocs.io/en/coverage-5.1/) you should add to your project.
+## 4. Current Setup
 
+The app uses two JSON files as its data source:
+
+- `competitions.json` – list of available competitions
+- `clubs.json` – list of clubs and login credentials
+
+> You can use the email addresses listed in `clubs.json` to log into the app.
+
+---
+
+## 5. Testing
+
+This project uses [`pytest`](https://docs.pytest.org/) as the testing framework.
+
+### Run tests
+
+To run all tests:
+
+```bash
+pytest
+```
+
+### Test Guidelines:
+
+- Aim for **at least 80% coverage**
+- Favor **unit tests > integration > functional**
+- Organize test files clearly into `unit/`, `integration/`, and `functional/`
+
+### Optional coverage tracking:
+
+You can use [`coverage`](https://coverage.readthedocs.io/) to track how much of your code is tested.
+
+Install with:
+```bash
+pip install coverage
+```
+
+Run tests with coverage:
+```bash
+coverage run -m pytest
+coverage report -m
+```
+
+---
+
+## 6. Contribution
+
+- Use Git branches named like `feature/your-feature`, `bug/fix-something`, or `improvement/clearer-readme`
+- Submit pull requests into the `QA` branch for review
+- Only merge into `main` when all tests pass and reviews are complete
