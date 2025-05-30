@@ -1,4 +1,3 @@
-import pytest
 from unittest.mock import patch
 from tests.utils import login_dashboard
 
@@ -15,11 +14,29 @@ def test_show_summary_route(client, test_data):
     response = login_dashboard(client, email, test_data)
 
     assert response.status_code == 200
-    assert b"Welcome, louis@armstrong.com" in response.data
+    assert f"Welcome, {email}".encode() in response.data
 
 
 def test_book_route_success(client, test_data):
     competition = test_data["competitions"][0]["name"]
+    club = test_data["clubs"][0]["name"]
+    places = str(test_data["competitions"][0]["numberOfPlaces"])
+
+    with patch("server.clubs", test_data["clubs"]), patch(
+        "server.competitions", test_data["competitions"]
+    ):
+        response = client.get(f"/book/{competition}/{club}")
+
+    assert response.status_code == 200
+    print(response.data)
+    assert f"Booking for {competition}".encode() in response.data
+    assert f"Places available: {places}".encode() in response.data
+    assert bytes(competition, "utf-8") in response.data
+    assert bytes(club, "utf-8") in response.data
+
+
+def test_book_route_past_competition(client, test_data):
+    competition = test_data["competitions"][2]["name"]
     club = test_data["clubs"][0]["name"]
 
     with patch("server.clubs", test_data["clubs"]), patch(
@@ -28,9 +45,7 @@ def test_book_route_success(client, test_data):
         response = client.get(f"/book/{competition}/{club}")
 
     assert response.status_code == 200
-    assert b"Booking for The Big Chest Challenge" in response.data
-    assert bytes(competition, "utf-8") in response.data
-    assert bytes(club, "utf-8") in response.data
+    assert b"You cannot book places for a past competition." in response.data
 
 
 def test_book_route_failure(client, test_data):
@@ -40,17 +55,10 @@ def test_book_route_failure(client, test_data):
         "server.competitions", test_data["competitions"]
     ):
 
-        # Le try/catch est temporaire
-        # Le but de cette branche est de faire les tests de base, pas de corriger les bugs
-        # Manque de robustesse en accedant à l'index 0 sans vérifier la présence de l'élément
-        try:
-            response = client.get(f"/book/Unknown Competition/{club}")
+        response = client.get(f"/book/Unknown Competition/{club}")
 
-            assert response.status_code == 200
-            assert b"Something went wrong-please try again" in response.data
-
-        except IndexError:
-            pytest.xfail("Known fragility in route handler, will fix later")
+        assert response.status_code == 200
+        assert b"Something went wrong-please try again" in response.data
 
 
 def test_purchase_places_route(client, test_data):

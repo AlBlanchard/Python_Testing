@@ -1,6 +1,8 @@
 import pytest
 from server import app
 
+from tests.utils import get_tomorrow, get_yesterday
+
 
 @pytest.fixture
 def client():
@@ -11,6 +13,9 @@ def client():
 
 @pytest.fixture
 def test_data():
+    formatted_tomorrow = get_tomorrow()
+    formatted_yesterday = get_yesterday()
+
     clubs = [
         {"name": "Big Chest", "email": "tim@bigchest.com", "points": "10"},
         {"name": "Arm Strong", "email": "louis@armstrong.com", "points": "40"},
@@ -19,12 +24,17 @@ def test_data():
     competitions = [
         {
             "name": "The Big Chest Challenge",
-            "date": "2025-10-10",
-            "numberOfPlaces": "100",
+            "date": f"{formatted_tomorrow}",
+            "numberOfPlaces": "1",
         },
         {
             "name": "Arm Strong Showdown",
-            "date": "2025-11-15",
+            "date": f"{formatted_tomorrow}",
+            "numberOfPlaces": "200",
+        },
+        {
+            "name": "Past Leg Day Madness",
+            "date": f"{formatted_yesterday}",
             "numberOfPlaces": "200",
         },
     ]
