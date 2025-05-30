@@ -122,6 +122,15 @@ coverage run -m pytest
 coverage report -m
 ```
 
+### Reset DB:
+
+The DB reset atomaticaly with FLASK_ENV=development
+Anyways, if something goes wrong, you can reset the DB :
+
+```bash
+flask reset-db
+```
+
 ---
 
 ## 6. Contribution

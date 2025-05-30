@@ -17,15 +17,16 @@ def test_show_summary_route(client, test_data):
     assert f"Welcome, {email}".encode() in response.data
 
 
-def test_book_route_success(client, test_data):
+# Bien garder patch_server_data dans les params des tests d'intégration
+# C'est une fixture qui patch les données des clubs et compétitions
+# Evite de se répéter avec les with patch dans chaque test
+# C'est de la Fixture injection :)
+def test_book_route_success(client, test_data, patch_server_data):
     competition = test_data["competitions"][0]["name"]
     club = test_data["clubs"][0]["name"]
     places = str(test_data["competitions"][0]["numberOfPlaces"])
 
-    with patch("server.clubs", test_data["clubs"]), patch(
-        "server.competitions", test_data["competitions"]
-    ):
-        response = client.get(f"/book/{competition}/{club}")
+    response = client.get(f"/book/{competition}/{club}")
 
     assert response.status_code == 200
     print(response.data)
@@ -35,50 +36,80 @@ def test_book_route_success(client, test_data):
     assert bytes(club, "utf-8") in response.data
 
 
-def test_book_route_past_competition(client, test_data):
+def test_book_route_past_competition(client, test_data, patch_server_data):
     competition = test_data["competitions"][2]["name"]
     club = test_data["clubs"][0]["name"]
 
-    with patch("server.clubs", test_data["clubs"]), patch(
-        "server.competitions", test_data["competitions"]
-    ):
-        response = client.get(f"/book/{competition}/{club}")
+    response = client.get(f"/book/{competition}/{club}")
 
     assert response.status_code == 200
     assert b"You cannot book places for a past competition." in response.data
 
 
-def test_book_route_failure(client, test_data):
+def test_book_route_failure(client, test_data, patch_server_data):
     club = test_data["clubs"][0]["name"]
 
-    with patch("server.clubs", test_data["clubs"]), patch(
-        "server.competitions", test_data["competitions"]
-    ):
+    response = client.get(f"/book/Unknown Competition/{club}")
 
-        response = client.get(f"/book/Unknown Competition/{club}")
-
-        assert response.status_code == 200
-        assert b"Something went wrong-please try again" in response.data
+    assert response.status_code == 200
+    assert b"Something went wrong-please try again" in response.data
 
 
-def test_purchase_places_route(client, test_data):
+def test_enough_place_to_purchase(client, test_data, patch_server_data):
+    competition = test_data["competitions"][1]
+    club = test_data["clubs"][0]
+    places_required = 5
+
+    response = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competition["name"],
+            "club": club["name"],
+            "places": str(places_required),
+        },
+    )
+
+    assert response.status_code == 200
+    assert b"Great-booking complete!" in response.data
+    assert bytes(club["name"], "utf-8") in response.data
+    assert bytes(competition["name"], "utf-8") in response.data
+
+
+def test_not_enough_place_to_purchase(client, test_data, patch_server_data):
     competition = test_data["competitions"][0]
     club = test_data["clubs"][0]
     places_required = 5
 
-    with patch("server.clubs", test_data["clubs"]), patch(
-        "server.competitions", test_data["competitions"]
-    ):
-        response = client.post(
-            "/purchasePlaces",
-            data={
-                "competition": competition["name"],
-                "club": club["name"],
-                "places": str(places_required),
-            },
-        )
+    response = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competition["name"],
+            "club": club["name"],
+            "places": str(places_required),
+        },
+    )
 
     assert response.status_code == 200
-    assert b"Great-booking complete!" in response.data
+    assert b"You cannot book more than" in response.data
+    assert bytes(club["name"], "utf-8") in response.data
+    assert bytes(competition["name"], "utf-8") in response.data
+
+
+def test_invalid_place_to_purchase_entry(client, test_data, patch_server_data):
+    competition = test_data["competitions"][0]
+    club = test_data["clubs"][0]
+    places_required = "invalid"
+
+    response = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competition["name"],
+            "club": club["name"],
+            "places": str(places_required),
+        },
+    )
+
+    assert response.status_code == 200
+    assert b"Invalid number of places entered." in response.data
     assert bytes(club["name"], "utf-8") in response.data
     assert bytes(competition["name"], "utf-8") in response.data

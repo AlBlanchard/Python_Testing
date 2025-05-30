@@ -1,18 +1,35 @@
-import json
+import json, os, shutil, click
+
 from flask import Flask, render_template, request, redirect, flash, url_for
 from datetime import datetime
 
+# DB PATHS FOR SEED AND DB FILES
+DATA_DIR = ""
 
-def loadClubs():
-    with open("clubs.json") as c:
-        listOfClubs = json.load(c)["clubs"]
-        return listOfClubs
+CLUBS_SEED_FILE = os.path.join(DATA_DIR, "seed_clubs.json")
+CLUBS_DB_FILE = os.path.join(DATA_DIR, "clubs.json")
+
+COMPET_SEED_FILE = os.path.join(DATA_DIR, "seed_competitions.json")
+COMPET_DB_FILE = os.path.join(DATA_DIR, "competitions.json")
 
 
-def loadCompetitions():
-    with open("competitions.json") as comps:
-        listOfCompetitions = json.load(comps)["competitions"]
-        return listOfCompetitions
+def reset_db_from_seed():
+    shutil.copyfile(CLUBS_SEED_FILE, CLUBS_DB_FILE)
+    shutil.copyfile(COMPET_SEED_FILE, COMPET_DB_FILE)
+    print("DB reinitialized from seed data.")
+
+
+# ----- UTILS ------ #
+def loadClubs(filename="clubs.json"):
+    with open(filename, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return data.get("clubs", [])
+
+
+def loadCompetitions(filename="competitions.json"):
+    with open(filename, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return data.get("competitions", [])
 
 
 def find_club_by_email(email, clubs_list):
@@ -38,13 +55,51 @@ def is_competition_in_past(competition):
         return True  # On considère une date invalide comme passée pour la sécurité
 
 
+def is_not_enough_places_available(competition, places_required):
+    return int(competition["numberOfPlaces"]) < places_required
+
+
+# Cette fonction fait deux choses :
+# 1. Convertit la valeur en entier si c'est une chaîne de caractères
+# 2. Vérifie la validité de l'entrée, nombre positif et non vide
+def purchase_places_entry_validator(places_required):
+    try:
+        if not places_required:
+            return None
+
+        places_required = int(str(places_required).strip())
+
+        if places_required <= 0:
+            return None
+
+        return places_required
+    except (ValueError, TypeError):
+        return None
+
+
+# ----- Flask App Setup ----- #
 app = Flask(__name__)
+
+
+# Reset DB with flask reset-db
+@app.cli.command("reset-db")
+def reset_db_cmd():
+    reset_db_from_seed()
+    click.echo("DB reinitialized from seed data.")
+
+
+# Reset DB if in development mode
+flask_env = os.getenv("FLASK_ENV", "").lower()
+if flask_env == "development" and os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+    reset_db_from_seed()
+
 app.secret_key = "something_special"
 
 competitions = loadCompetitions()
 clubs = loadClubs()
 
 
+# ----- Flask Routes ----- #
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -86,8 +141,24 @@ def purchasePlaces():
         0
     ]
     club = [c for c in clubs if c["name"] == request.form["club"]][0]
-    placesRequired = int(request.form["places"])
-    competition["numberOfPlaces"] = int(competition["numberOfPlaces"]) - placesRequired
+    placesRequired = request.form["places"]
+    available = int(competition["numberOfPlaces"])
+
+    places_required_int = purchase_places_entry_validator(placesRequired)
+
+    if places_required_int is None:
+        flash("Invalid number of places entered.")
+        return render_template("welcome.html", club=club, competitions=competitions)
+
+    if is_competition_in_past(competition):
+        flash("You cannot book places for a past competition.")
+        return render_template("welcome.html", club=club, competitions=competitions)
+
+    if is_not_enough_places_available(competition, places_required_int):
+        flash(f"You cannot book more than {available} places for this competition.")
+        return render_template("welcome.html", club=club, competitions=competitions)
+
+    competition["numberOfPlaces"] = available - places_required_int
     flash("Great-booking complete!")
     return render_template("welcome.html", club=club, competitions=competitions)
 
