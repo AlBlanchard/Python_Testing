@@ -10,6 +10,8 @@ from server import (
     find_club_by_name,
     find_competition_by_name,
     is_competition_in_past,
+    is_not_enough_places_available,
+    purchase_places_entry_validator,
 )
 
 
@@ -94,3 +96,40 @@ def test_is_competition_in_past_false():
         "date": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S")
     }
     assert is_competition_in_past(future_competition) is False
+
+
+def test_is_not_enough_places_available_true():
+    competition = {"numberOfPlaces": "5"}
+    places_required = 10
+    assert is_not_enough_places_available(competition, places_required) is True
+
+
+def test_is_not_enough_places_available_false():
+    competition = {"numberOfPlaces": "10"}
+    places_required = 5
+    assert is_not_enough_places_available(competition, places_required) is False
+
+
+def test_purchase_places_entry_validator_valid():
+    purchase_data = 5
+    assert purchase_places_entry_validator(purchase_data) is int(purchase_data)
+
+
+def test_purchase_places_entry_validator_valid_string():
+    purchase_data = "5"
+    assert purchase_places_entry_validator(purchase_data) is int(purchase_data)
+
+
+def test_purchase_places_entry_validator_invalid():
+    purchase_data = "0"
+    assert purchase_places_entry_validator(purchase_data) is None
+
+
+def test_purchase_places_entry_validator_invalid_non_integer():
+    purchase_data = "abc"
+    assert purchase_places_entry_validator(purchase_data) is None
+
+
+def test_purchase_places_entry_validator_invalid_none():
+    purchase_data = None
+    assert purchase_places_entry_validator(purchase_data) is None

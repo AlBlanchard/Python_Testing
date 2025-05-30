@@ -55,6 +55,28 @@ def is_competition_in_past(competition):
         return True  # On considère une date invalide comme passée pour la sécurité
 
 
+def is_not_enough_places_available(competition, places_required):
+    return int(competition["numberOfPlaces"]) < places_required
+
+
+# Cette fonction fait deux choses :
+# 1. Convertit la valeur en entier si c'est une chaîne de caractères
+# 2. Vérifie la validité de l'entrée, nombre positif et non vide
+def purchase_places_entry_validator(places_required):
+    try:
+        if not places_required:
+            return None
+
+        places_required = int(str(places_required).strip())
+
+        if places_required <= 0:
+            return None
+
+        return places_required
+    except (ValueError, TypeError):
+        return None
+
+
 # ----- Flask App Setup ----- #
 app = Flask(__name__)
 
@@ -119,9 +141,24 @@ def purchasePlaces():
         0
     ]
     club = [c for c in clubs if c["name"] == request.form["club"]][0]
-    placesRequired = int(request.form["places"])
+    placesRequired = request.form["places"]
+    available = int(competition["numberOfPlaces"])
 
-    competition["numberOfPlaces"] = int(competition["numberOfPlaces"]) - placesRequired
+    places_required_int = purchase_places_entry_validator(placesRequired)
+
+    if places_required_int is None:
+        flash("Invalid number of places entered.")
+        return render_template("welcome.html", club=club, competitions=competitions)
+
+    if is_competition_in_past(competition):
+        flash("You cannot book places for a past competition.")
+        return render_template("welcome.html", club=club, competitions=competitions)
+
+    if is_not_enough_places_available(competition, places_required_int):
+        flash(f"You cannot book more than {available} places for this competition.")
+        return render_template("welcome.html", club=club, competitions=competitions)
+
+    competition["numberOfPlaces"] = available - places_required_int
     flash("Great-booking complete!")
     return render_template("welcome.html", club=club, competitions=competitions)
 

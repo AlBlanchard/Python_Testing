@@ -55,8 +55,8 @@ def test_book_route_failure(client, test_data, patch_server_data):
     assert b"Something went wrong-please try again" in response.data
 
 
-def test_purchase_places_route(client, test_data, patch_server_data):
-    competition = test_data["competitions"][0]
+def test_enough_place_to_purchase(client, test_data, patch_server_data):
+    competition = test_data["competitions"][1]
     club = test_data["clubs"][0]
     places_required = 5
 
@@ -71,5 +71,45 @@ def test_purchase_places_route(client, test_data, patch_server_data):
 
     assert response.status_code == 200
     assert b"Great-booking complete!" in response.data
+    assert bytes(club["name"], "utf-8") in response.data
+    assert bytes(competition["name"], "utf-8") in response.data
+
+
+def test_not_enough_place_to_purchase(client, test_data, patch_server_data):
+    competition = test_data["competitions"][0]
+    club = test_data["clubs"][0]
+    places_required = 5
+
+    response = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competition["name"],
+            "club": club["name"],
+            "places": str(places_required),
+        },
+    )
+
+    assert response.status_code == 200
+    assert b"You cannot book more than" in response.data
+    assert bytes(club["name"], "utf-8") in response.data
+    assert bytes(competition["name"], "utf-8") in response.data
+
+
+def test_invalid_place_to_purchase_entry(client, test_data, patch_server_data):
+    competition = test_data["competitions"][0]
+    club = test_data["clubs"][0]
+    places_required = "invalid"
+
+    response = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competition["name"],
+            "club": club["name"],
+            "places": str(places_required),
+        },
+    )
+
+    assert response.status_code == 200
+    assert b"Invalid number of places entered." in response.data
     assert bytes(club["name"], "utf-8") in response.data
     assert bytes(competition["name"], "utf-8") in response.data
