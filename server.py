@@ -20,16 +20,16 @@ def reset_db_from_seed():
 
 
 # ----- UTILS ------ #
-def loadClubs():
-    with open("clubs.json") as c:
-        listOfClubs = json.load(c)["clubs"]
-        return listOfClubs
+def loadClubs(filename="clubs.json"):
+    with open(filename, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return data.get("clubs", [])
 
 
-def loadCompetitions():
-    with open("competitions.json") as comps:
-        listOfCompetitions = json.load(comps)["competitions"]
-        return listOfCompetitions
+def loadCompetitions(filename="competitions.json"):
+    with open(filename, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return data.get("competitions", [])
 
 
 def find_club_by_email(email, clubs_list):
