@@ -1,8 +1,25 @@
-import json
+import json, os, shutil, click
+
 from flask import Flask, render_template, request, redirect, flash, url_for
 from datetime import datetime
 
+# DB PATHS FOR SEED AND DB FILES
+DATA_DIR = ""
 
+CLUBS_SEED_FILE = os.path.join(DATA_DIR, "seed_clubs.json")
+CLUBS_DB_FILE = os.path.join(DATA_DIR, "clubs.json")
+
+COMPET_SEED_FILE = os.path.join(DATA_DIR, "seed_competitions.json")
+COMPET_DB_FILE = os.path.join(DATA_DIR, "competitions.json")
+
+
+def reset_db_from_seed():
+    shutil.copyfile(CLUBS_SEED_FILE, CLUBS_DB_FILE)
+    shutil.copyfile(COMPET_SEED_FILE, COMPET_DB_FILE)
+    print("DB reinitialized from seed data.")
+
+
+# ----- UTILS ------ #
 def loadClubs():
     with open("clubs.json") as c:
         listOfClubs = json.load(c)["clubs"]
@@ -38,13 +55,29 @@ def is_competition_in_past(competition):
         return True  # On considère une date invalide comme passée pour la sécurité
 
 
+# ----- Flask App Setup ----- #
 app = Flask(__name__)
+
+
+# Reset DB with flask reset-db
+@app.cli.command("reset-db")
+def reset_db_cmd():
+    reset_db_from_seed()
+    click.echo("DB reinitialized from seed data.")
+
+
+# Reset DB if in development mode
+flask_env = os.getenv("FLASK_ENV", "").lower()
+if flask_env == "development" and os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+    reset_db_from_seed()
+
 app.secret_key = "something_special"
 
 competitions = loadCompetitions()
 clubs = loadClubs()
 
 
+# ----- Flask Routes ----- #
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -87,6 +120,7 @@ def purchasePlaces():
     ]
     club = [c for c in clubs if c["name"] == request.form["club"]][0]
     placesRequired = int(request.form["places"])
+
     competition["numberOfPlaces"] = int(competition["numberOfPlaces"]) - placesRequired
     flash("Great-booking complete!")
     return render_template("welcome.html", club=club, competitions=competitions)
