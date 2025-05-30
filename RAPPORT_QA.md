@@ -163,4 +163,4 @@ Empêcher les réservations avec des entrées invalides pour le nombre de places
 
 #### Fonctionnels
 
-- Parcours complet de réservation incluant la gestion des entrées i
+- Parcours complet de réservation incluant la gestion des entrées
