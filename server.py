@@ -1,5 +1,6 @@
 import json
 from flask import Flask, render_template, request, redirect, flash, url_for
+from datetime import datetime
 
 
 def loadClubs():
@@ -16,6 +17,25 @@ def loadCompetitions():
 
 def find_club_by_email(email, clubs_list):
     return next((club for club in clubs_list if club["email"] == email), None)
+
+
+def find_club_by_name(name, clubs_list):
+    return next((club for club in clubs_list if club["name"] == name), None)
+
+
+def find_competition_by_name(name, competitions_list):
+    return next(
+        (compet for compet in competitions_list if compet["name"] == name),
+        None,
+    )
+
+
+def is_competition_in_past(competition):
+    try:
+        competition_date = datetime.strptime(competition["date"], "%Y-%m-%d %H:%M:%S")
+        return competition_date < datetime.now()
+    except (KeyError, ValueError):
+        return True  # On considère une date invalide comme passée pour la sécurité
 
 
 app = Flask(__name__)
@@ -44,15 +64,20 @@ def showSummary():
 
 @app.route("/book/<competition>/<club>")
 def book(competition, club):
-    foundClub = [c for c in clubs if c["name"] == club][0]
-    foundCompetition = [c for c in competitions if c["name"] == competition][0]
-    if foundClub and foundCompetition:
-        return render_template(
-            "booking.html", club=foundClub, competition=foundCompetition
-        )
-    else:
+    foundClub = find_club_by_name(club, clubs)
+    foundCompetition = find_competition_by_name(competition, competitions)
+
+    if not foundClub or not foundCompetition:
         flash("Something went wrong-please try again")
         return render_template("welcome.html", club=club, competitions=competitions)
+
+    if is_competition_in_past(foundCompetition):
+        flash("You cannot book places for a past competition.")
+        return render_template(
+            "welcome.html", club=foundClub, competitions=competitions
+        )
+
+    return render_template("booking.html", club=foundClub, competition=foundCompetition)
 
 
 @app.route("/purchasePlaces", methods=["POST"])
