@@ -26,6 +26,13 @@ def test_unknown_user_cannot_log_in(client, test_data):
     assert response.headers["Location"].endswith("/")
 
 
+def test_none_user_cannot_log_in(client, test_data):
+    email = None
+    response = login_dashboard(client, email, test_data)
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/")
+
+
 # Tests pour la route /showSummary
 def test_user_can_access_booking_page(client, test_data):
     email = test_data["clubs"][0]["email"]
@@ -82,7 +89,41 @@ def test_booking_past_competition_functional(client, test_data):
     assert b"You cannot book places for a past competition." in response.data
 
 
+def test_booking_unknown_competition_and_club(client, test_data):
+    email = test_data["clubs"][0]["email"]
+
+    # Simule la connexion d'un utilisateur valide
+    login_dashboard(client, email, test_data, follow_redirects=True)
+
+    response = client.get("/book/UnknownCompetition/UnknownClub", follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b"Something went wrong-please try again" in response.data
+
+
 # Tests pour la route /purchasePlaces
+def test_booking_past_competition_purchase_places(client, test_data):
+    email = test_data["clubs"][0]["email"]
+    club_name = test_data["clubs"][0]["name"]
+    competition_name = test_data["competitions"][2]["name"]  # compétition passée
+    places_required = 1
+
+    login_dashboard(client, email, test_data, follow_redirects=True)
+
+    response = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competition_name,
+            "club": club_name,
+            "places": str(places_required),
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"You cannot book places for a past competition." in response.data
+
+
 def test_booking_too_many_places_functional(client, test_data):
     email = test_data["clubs"][0]["email"]
     club_name = test_data["clubs"][0]["name"]
