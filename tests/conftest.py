@@ -13,6 +13,8 @@ def client():
         yield client
 
 
+# Pour les tests unitaires et d'intégrations
+# Utilisé pour les fonctionnels également, pour les entrées de données (forms etc...)
 @pytest.fixture
 def test_data():
     formatted_tomorrow = get_tomorrow()
@@ -44,6 +46,8 @@ def test_data():
     return {"clubs": clubs, "competitions": competitions}
 
 
+# Simule complétement une base de données isolée pour chaque test
+# Pour les tests fonctionnels
 @pytest.fixture(autouse=True)
 def isolated_test_db(tmp_path, test_data, monkeypatch):
     """
@@ -76,9 +80,9 @@ def isolated_test_db(tmp_path, test_data, monkeypatch):
     return clubs_db_file, competitions_db_file
 
 
-@pytest.fixture(autouse=True)
+# Patch les données des clubs et compétitions pour les tests d'intégration
+# Utilisé en Fixture injection dans les tests
+@pytest.fixture
 def patch_server_data(monkeypatch, test_data):
-    # applique avant chaque test
     monkeypatch.setattr(server, "clubs", test_data["clubs"])
     monkeypatch.setattr(server, "competitions", test_data["competitions"])
-    yield
