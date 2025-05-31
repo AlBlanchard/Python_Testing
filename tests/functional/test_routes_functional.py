@@ -235,3 +235,51 @@ def test_booking_under_limit_places_functional(client, test_data):
     assert b"Great-booking complete!" in response.data
     assert bytes(club_name, "utf-8") in response.data
     assert bytes(competition_name, "utf-8") in response.data
+
+
+def test_not_enough_points_to_purchase_functional(client, test_data):
+    email = test_data["clubs"][1]["email"]
+    club_name = test_data["clubs"][0]["name"]
+    competition_name = test_data["competitions"][1]["name"]
+    places_required = 11
+
+    login_dashboard(client, email, test_data, follow_redirects=True)
+    response = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competition_name,
+            "club": club_name,
+            "places": str(places_required),
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert (
+        b"You do not have enough points to book this number of places." in response.data
+    )
+    assert bytes(club_name, "utf-8") in response.data
+    assert bytes(competition_name, "utf-8") in response.data
+
+
+def test_enough_points_to_purchase_functional(client, test_data):
+    email = test_data["clubs"][1]["email"]
+    club_name = test_data["clubs"][1]["name"]
+    competition_name = test_data["competitions"][1]["name"]
+    places_required = 5
+
+    login_dashboard(client, email, test_data, follow_redirects=True)
+    response = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competition_name,
+            "club": club_name,
+            "places": str(places_required),
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Great-booking complete!" in response.data
+    assert bytes(club_name, "utf-8") in response.data
+    assert bytes(competition_name, "utf-8") in response.data

@@ -208,3 +208,44 @@ Empêcher les utilisateurs de réserver plus de 12 places lors d'une réservatio
 - Code prêt pour intégration continue
 
 ---
+
+## FIX 5 : Vérification des points disponibles pour la réservation
+
+**Branche** : `fix/purchase-check-club-points`
+
+**Objectif** :
+Empêcher un club de réserver plus de places qu'il ne possède de points, même en cas de tentative manuelle.
+
+**Modifications** :
+
+- Ajout de la fonction métier `is_club_doesnt_have_enough_points()`.
+- Ajout de la vérification correspondante dans la route `/purchasePlaces`.
+- Blocage et affichage d’un message d’erreur explicite en cas de points insuffisants.
+
+### Tests réalisés
+
+#### Unitaires
+
+- Tests de la fonction `is_club_doesnt_have_enough_points()` :
+  - Cas de points insuffisants (blocage attendu)
+  - Cas de points suffisants (réservation autorisée)
+
+#### Intégration
+
+- Simulation de soumission de réservation avec :
+  - Demande supérieure aux points disponibles (blocage)
+  - Demande inférieure ou égale aux points disponibles (réussite)
+
+#### Fonctionnels
+
+- Parcours utilisateur complet avec :
+  - Connexion, réservation normale avec points suffisants
+  - Connexion, tentative de réservation avec points insuffisants (blocage)
+
+### Etat actuel
+
+- Tous les tests passent
+- La règle métier de gestion des points est correctement appliquée
+- Code prêt pour intégration continue
+
+---
