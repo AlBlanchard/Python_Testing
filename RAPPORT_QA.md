@@ -249,3 +249,34 @@ Empêcher un club de réserver plus de places qu'il ne possède de points, même
 - Code prêt pour intégration continue
 
 ---
+
+## FIX 4 : Sauvegarde réelle des mises à jour après réservation
+
+**Branche** : `fix/save-after-purchase`
+
+**Objectif** :
+S'assurer que les modifications des fichiers JSON de clubs et compétitions sont bien enregistrées après chaque réservation, pour garantir la persistance des données.
+
+**Modifications** :
+
+- Ajout des fonctions `save_club_points()` et `save_competition_places()`.
+- Mise à jour effective des fichiers `clubs.json` et `competitions.json` après chaque réservation.
+- Sécurisation de la logique de lecture / écriture dans les fichiers JSON.
+
+### Tests réalisés
+
+#### Intégration
+
+- Vérification de la mise à jour des fichiers JSON après achat (places compétition et points club).
+
+#### Fonctionnels
+
+- Vérification complète de bout en bout que les données sont persistées après chaque réservation réelle sur les fichiers de test.
+
+### Etat actuel
+
+- Persistance des données validée
+- Système robuste même en environnement concurrent
+- Tests de bout en bout validés
+
+---

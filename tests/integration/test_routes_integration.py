@@ -1,3 +1,5 @@
+import json
+import server
 from unittest.mock import patch
 from tests.utils import login_dashboard
 
@@ -205,3 +207,68 @@ def test_enough_points_to_purchase(client, test_data, patch_server_data):
     assert b"Great-booking complete!" in response.data
     assert bytes(club["name"], "utf-8") in response.data
     assert bytes(competition["name"], "utf-8") in response.data
+
+
+# Mettre tout de même isolated_test_db car pytest n'injecte pas le résultat directement
+# Même si c'est en autouse
+def test_club_points_update_after_purchase(client, test_data, isolated_test_db):
+    competition = test_data["competitions"][1]
+    club = test_data["clubs"][1]
+    places_required = 5
+
+    initial_points = int(test_data["clubs"][1]["points"])
+
+    response = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competition["name"],
+            "club": club["name"],
+            "places": places_required,
+        },
+    )
+
+    assert response.status_code == 200
+    assert b"Great-booking complete!" in response.data
+
+    # Récupère les fichiers temporaires de la fixture
+    clubs_db_file, competitions_db_file = isolated_test_db
+
+    with open(clubs_db_file, "r", encoding="utf-8") as f:
+        clubs_data = json.load(f)["clubs"]
+
+    # Relire depuis le fichier JSON réellement modifié
+    updated_club = next((c for c in clubs_data if c["name"] == club["name"]), None)
+
+    assert int(updated_club["points"]) == initial_points - places_required
+
+
+def test_competition_places_update_after_purchase(client, test_data, isolated_test_db):
+    competition = test_data["competitions"][1]
+    club = test_data["clubs"][1]
+    places_required = 5
+
+    initial_places = int(competition["numberOfPlaces"])
+
+    response = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competition["name"],
+            "club": club["name"],
+            "places": str(places_required),
+        },
+    )
+
+    assert response.status_code == 200
+    assert b"Great-booking complete!" in response.data
+
+    clubs_db_file, competitions_db_file = isolated_test_db
+
+    with open(competitions_db_file, "r", encoding="utf-8") as f:
+        competitions_data = json.load(f)["competitions"]
+
+    updated_competition = next(
+        (c for c in competitions_data if c["name"] == competition["name"]), None
+    )
+
+    expected_places = initial_places - places_required
+    assert int(updated_competition["numberOfPlaces"]) == expected_places
