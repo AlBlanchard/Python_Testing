@@ -322,3 +322,37 @@ S'assurer que les modifications des fichiers JSON de clubs et compétitions sont
 - Tous les tests passent.
 - Le tableau des points fonctionne selon les attentes.
 - Fonctionnalité stable, intégrable.
+
+---
+
+## Performances & Tests
+
+L'application a été entièrement couverte par une suite de tests :
+
+- **Unitaires** : Fonctions métiers isolées
+- **Intégration** : Tests des routes Flask avec client de test
+- **Fonctionnels** : Scénarios utilisateurs complets
+- **Performance** : Tests de charge via Locust
+  - < 5s pour le chargement des pages
+  - < 2s pour les écritures (réservations)
+
+L'ensemble des tests couvre aujourd’hui l’intégralité des cas métier décrits dans le cahier des charges.
+
+---
+
+## COVERAGE REPORT
+
+Les tests couvrent 96% du code.
+
+Pour voir le tableau :
+
+coverage report -m
+
+---
+
+## Conclusion QA
+
+- Tests complets réalisés sur toutes les fonctionnalités spécifiées.
+- Respect des consignes de structure de test (unit > integration > functional).
+- Haute robustesse, couverture de code et tests de charge validés.
+- Application stable et sécurisée pour passage en recette.
