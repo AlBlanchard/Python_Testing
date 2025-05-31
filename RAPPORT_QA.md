@@ -280,3 +280,45 @@ S'assurer que les modifications des fichiers JSON de clubs et compétitions sont
 - Tests de bout en bout validés
 
 ---
+
+## IMPROVEMENT 2 : Affichage du tableau des points
+
+**Branche** : `improvement/points-board`
+
+### Objectif
+
+- Ajouter une nouvelle page `/points` qui affiche les points disponibles pour chaque club.
+- Permettre un affichage différencié en fonction de la session (connecté ou non) avec bouton de retour adapté.
+
+### Modifications
+
+- Création du template `points.html` avec affichage de tous les clubs et leurs points.
+- Ajout de la route Flask `/points` sécurisant l’affichage avec la session.
+- Utilisation de `session.get('email')` pour savoir si l’utilisateur est connecté.
+
+### Tests réalisés
+
+#### Unitaires
+
+- Aucune fonction unitaire spécifique, réutilisation des fonctions existantes déjà testées.
+
+#### Intégration
+
+- Accès à `/points` avec un utilisateur connecté :
+  - Vérifie l’affichage du tableau des points.
+  - Vérifie que le nom du club connecté est bien présent.
+- Accès à `/points` sans utilisateur connecté :
+  - Vérifie que la page est accessible et affiche correctement les clubs.
+
+#### Fonctionnels
+
+- Parcours complet :
+  - Connexion avec un club existant.
+  - Accès à `/points` avec session active.
+  - Vérification de l’affichage des clubs et de leurs points.
+
+### Etat actuel
+
+- Tous les tests passent.
+- Le tableau des points fonctionne selon les attentes.
+- Fonctionnalité stable, intégrable.

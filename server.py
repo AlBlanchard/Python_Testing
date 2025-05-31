@@ -1,6 +1,7 @@
 import json, os, shutil, click
 
-from flask import Flask, render_template, request, redirect, flash, url_for
+
+from flask import Flask, render_template, request, redirect, flash, url_for, session
 from datetime import datetime
 
 # DB PATHS FOR SEED AND DB FILES
@@ -155,6 +156,8 @@ def showSummary():
         flash("Sorry, we could not find your email address.")
         return redirect(url_for("index"))
 
+    session["club_name"] = club["name"]
+
     return render_template("welcome.html", club=club, competitions=competitions)
 
 
@@ -226,9 +229,30 @@ def purchasePlaces():
     return render_template("welcome.html", club=club, competitions=competitions)
 
 
-# TODO: Add route for points display
+@app.route("/points")
+def showPoints():
+    clubs = loadClubs(CLUBS_DB_FILE)
+    sorted_clubs = sorted(clubs, key=lambda c: int(c["points"]), reverse=True)
+    logged_in = "club_name" in session
+    return render_template("points.html", clubs=sorted_clubs, logged_in=logged_in)
+
+
+@app.route("/dashboard", methods=["GET"])
+def dashboard():
+    clubs = loadClubs(CLUBS_DB_FILE)
+    competitions = loadCompetitions(COMPET_DB_FILE)
+
+    club_name = session.get("club_name")
+    club = find_club_by_name(club_name, clubs)
+
+    if not club:
+        flash("Session expired, please log in again.")
+        return redirect(url_for("index"))
+
+    return render_template("welcome.html", club=club, competitions=competitions)
 
 
 @app.route("/logout")
 def logout():
+    session.clear()
     return redirect(url_for("index"))
