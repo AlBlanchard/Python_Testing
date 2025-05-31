@@ -1,6 +1,5 @@
 import json, os, shutil, click
 
-
 from flask import Flask, render_template, request, redirect, flash, url_for, session
 from datetime import datetime
 
