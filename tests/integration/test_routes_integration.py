@@ -163,3 +163,45 @@ def test_under_the_limit_places_to_purchase(client, test_data, patch_server_data
     assert b"Great-booking complete!" in response.data
     assert bytes(club["name"], "utf-8") in response.data
     assert bytes(competition["name"], "utf-8") in response.data
+
+
+def test_not_enough_points_to_purchase(client, test_data, patch_server_data):
+    competition = test_data["competitions"][1]
+    club = test_data["clubs"][0]
+    places_required = 11
+
+    response = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competition["name"],
+            "club": club["name"],
+            "places": str(places_required),
+        },
+    )
+
+    assert response.status_code == 200
+    assert (
+        b"You do not have enough points to book this number of places." in response.data
+    )
+    assert bytes(club["name"], "utf-8") in response.data
+    assert bytes(competition["name"], "utf-8") in response.data
+
+
+def test_enough_points_to_purchase(client, test_data, patch_server_data):
+    competition = test_data["competitions"][1]
+    club = test_data["clubs"][1]
+    places_required = 5
+
+    response = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competition["name"],
+            "club": club["name"],
+            "places": str(places_required),
+        },
+    )
+
+    assert response.status_code == 200
+    assert b"Great-booking complete!" in response.data
+    assert bytes(club["name"], "utf-8") in response.data
+    assert bytes(competition["name"], "utf-8") in response.data

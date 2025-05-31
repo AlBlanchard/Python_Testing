@@ -13,6 +13,7 @@ from server import (
     is_not_enough_places_available,
     purchase_places_entry_validator,
     is_above_the_limit_places,
+    is_club_doesnt_have_enough_points,
 )
 
 
@@ -146,3 +147,15 @@ def test_is_not_above_the_limit_places():
     places_required = 10
     limit = 12
     assert is_above_the_limit_places(places_required, limit) is False
+
+
+def test_is_club_have_enough_points_true():
+    club_points = "15"
+    places_required = 10
+    assert is_club_doesnt_have_enough_points(club_points, places_required) is False
+
+
+def test_is_club_have_enough_points_false():
+    club_points = "5"
+    places_required = 10
+    assert is_club_doesnt_have_enough_points(club_points, places_required) is True

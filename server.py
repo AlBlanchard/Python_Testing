@@ -82,6 +82,10 @@ def is_above_the_limit_places(places_required, limit=12):
     return places_required > limit
 
 
+def is_club_doesnt_have_enough_points(club_points, places_required):
+    return int(club_points) < places_required
+
+
 # ----- Flask App Setup ----- #
 app = Flask(__name__)
 
@@ -161,13 +165,17 @@ def purchasePlaces():
         flash("Invalid number of places entered.")
         return render_template("welcome.html", club=club, competitions=competitions)
 
-    if is_not_enough_places_available(competition, places_required_int):
-        flash(f"You cannot book more than {available} places for this competition.")
-        return render_template("welcome.html", club=club, competitions=competitions)
-
     # La limite peut être redéfinie en 2eme paramètre, limit=12 étant la valeur par défaut
     if is_above_the_limit_places(places_required_int):
         flash("You cannot book more than 12 places at once.")
+        return render_template("welcome.html", club=club, competitions=competitions)
+
+    if is_club_doesnt_have_enough_points(club["points"], places_required_int):
+        flash("You do not have enough points to book this number of places.")
+        return render_template("welcome.html", club=club, competitions=competitions)
+
+    if is_not_enough_places_available(competition, places_required_int):
+        flash(f"You cannot book more than {available} places for this competition.")
         return render_template("welcome.html", club=club, competitions=competitions)
 
     competition["numberOfPlaces"] = available - places_required_int
