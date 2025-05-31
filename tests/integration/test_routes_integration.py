@@ -272,3 +272,23 @@ def test_competition_places_update_after_purchase(client, test_data, isolated_te
 
     expected_places = initial_places - places_required
     assert int(updated_competition["numberOfPlaces"]) == expected_places
+
+
+def test_points_board_logged_in(client, test_data, patch_server_data):
+    email = test_data["clubs"][0]["email"]
+    client.post("/showSummary", data={"email": email}, follow_redirects=True)
+
+    response = client.get("/points")
+
+    assert response.status_code == 200
+    assert b"Points Board" in response.data
+    assert bytes(test_data["clubs"][0]["name"], "utf-8") in response.data
+    assert b"Back to the board" in response.data
+
+
+def test_points_board_anonymous(client, patch_server_data):
+    response = client.get("/points")
+
+    assert response.status_code == 200
+    assert b"Points Board" in response.data
+    assert b"Back to the login" in response.data

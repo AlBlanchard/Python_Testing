@@ -359,3 +359,24 @@ def test_competition_places_updated_after_purchase_functional(
     assert updated_competition is not None
     expected_places = initial_places - places_required
     assert int(updated_competition["numberOfPlaces"]) == expected_places
+
+
+def test_functional_points_board_logged_in(client, test_data):
+    email = test_data["clubs"][0]["email"]
+    club_name = test_data["clubs"][0]["name"]
+
+    client.post("/showSummary", data={"email": email}, follow_redirects=True)
+
+    response = client.get("/points", follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b"Points Board" in response.data
+    assert bytes(club_name, "utf-8") in response.data
+    assert b"Back to the board" in response.data
+
+
+def test_functional_points_board_anonymous(client):
+    response = client.get("/points", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Points Board" in response.data
+    assert b"Back to the login" in response.data

@@ -159,3 +159,15 @@ def test_is_club_have_enough_points_false():
     club_points = "5"
     places_required = 10
     assert is_club_doesnt_have_enough_points(club_points, places_required) is True
+
+
+def test_logout_clears_session(client):
+    with client.session_transaction() as sess:
+        sess["club_name"] = "Big Chest"
+    response = client.get("/logout", follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b"Welcome to the GUDLFT Registration Portal!" in response.data
+
+    with client.session_transaction() as sess:
+        assert "club_name" not in sess
