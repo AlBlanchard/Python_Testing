@@ -21,15 +21,23 @@ def reset_db_from_seed():
 
 # ----- UTILS ------ #
 def loadClubs(filename="clubs.json"):
-    with open(filename, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    return data.get("clubs", [])
+    try:
+        with open(filename, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data.get("clubs", [])
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"Error loading clubs data: {e}")
+        return []
 
 
 def loadCompetitions(filename="competitions.json"):
-    with open(filename, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    return data.get("competitions", [])
+    try:
+        with open(filename, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data.get("competitions", [])
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"Error loading competitions data: {e}")
+        return []
 
 
 def find_club_by_email(email, clubs_list):
@@ -86,6 +94,30 @@ def is_club_doesnt_have_enough_points(club_points, places_required):
     return int(club_points) < places_required
 
 
+def places_json_update(competition, places_required):
+    """
+    Update the number of places available for a competition.
+    """
+    competition["numberOfPlaces"] = int(competition["numberOfPlaces"]) - places_required
+    return competition
+
+
+def save_club_points(filename="clubs.json", clubs_data=None):
+    if clubs_data is None:
+        clubs_data = clubs
+
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump({"clubs": clubs_data}, f, indent=4, ensure_ascii=False)
+
+
+def save_competition_places(filename="competitions.json", competitions_data=None):
+    if competitions_data is None:
+        competitions_data = competitions
+
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump({"competitions": competitions_data}, f, indent=4, ensure_ascii=False)
+
+
 # ----- Flask App Setup ----- #
 app = Flask(__name__)
 
@@ -104,9 +136,6 @@ if flask_env == "development" and os.environ.get("WERKZEUG_RUN_MAIN") == "true":
 
 app.secret_key = "something_special"
 
-competitions = loadCompetitions()
-clubs = loadClubs()
-
 
 # ----- Flask Routes ----- #
 @app.route("/")
@@ -116,6 +145,9 @@ def index():
 
 @app.route("/showSummary", methods=["POST"])
 def showSummary():
+    clubs = loadClubs(CLUBS_DB_FILE)
+    competitions = loadCompetitions(COMPET_DB_FILE)
+
     email = request.form.get("email")
     club = find_club_by_email(email, clubs)
 
@@ -128,6 +160,9 @@ def showSummary():
 
 @app.route("/book/<competition>/<club>")
 def book(competition, club):
+    clubs = loadClubs(CLUBS_DB_FILE)
+    competitions = loadCompetitions(COMPET_DB_FILE)
+
     foundClub = find_club_by_name(club, clubs)
     foundCompetition = find_competition_by_name(competition, competitions)
 
@@ -146,6 +181,9 @@ def book(competition, club):
 
 @app.route("/purchasePlaces", methods=["POST"])
 def purchasePlaces():
+    clubs = loadClubs(CLUBS_DB_FILE)
+    competitions = loadCompetitions(COMPET_DB_FILE)
+
     competition = [c for c in competitions if c["name"] == request.form["competition"]][
         0
     ]
@@ -178,7 +216,12 @@ def purchasePlaces():
         flash(f"You cannot book more than {available} places for this competition.")
         return render_template("welcome.html", club=club, competitions=competitions)
 
-    competition["numberOfPlaces"] = available - places_required_int
+    club["points"] = str(int(club["points"]) - places_required_int)
+    competition["numberOfPlaces"] = str(available - places_required_int)
+
+    save_club_points(CLUBS_DB_FILE, clubs)
+    save_competition_places(COMPET_DB_FILE, competitions)
+
     flash("Great-booking complete!")
     return render_template("welcome.html", club=club, competitions=competitions)
 
