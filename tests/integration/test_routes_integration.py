@@ -17,6 +17,16 @@ def test_show_summary_route(client, test_data):
     assert f"Welcome, {email}".encode() in response.data
 
 
+def test_show_summary_route_invalid_email(client, test_data):
+    response = login_dashboard(
+        client, "unknow@noexist.com", test_data, follow_redirects=True
+    )
+
+    assert response.status_code == 200
+    assert b"Sorry, we could not find your email address." in response.data
+    assert b"Welcome to the GUDLFT Registration Portal!" in response.data
+
+
 # Bien garder patch_server_data dans les params des tests d'intégration
 # C'est une fixture qui patch les données des clubs et compétitions
 # Evite de se répéter avec les with patch dans chaque test
@@ -111,5 +121,45 @@ def test_invalid_place_to_purchase_entry(client, test_data, patch_server_data):
 
     assert response.status_code == 200
     assert b"Invalid number of places entered." in response.data
+    assert bytes(club["name"], "utf-8") in response.data
+    assert bytes(competition["name"], "utf-8") in response.data
+
+
+def test_above_limit_places_to_purchase(client, test_data, patch_server_data):
+    competition = test_data["competitions"][1]
+    club = test_data["clubs"][1]
+    places_required = 13
+
+    response = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competition["name"],
+            "club": club["name"],
+            "places": str(places_required),
+        },
+    )
+
+    assert response.status_code == 200
+    assert b"You cannot book more than 12 places at once." in response.data
+    assert bytes(club["name"], "utf-8") in response.data
+    assert bytes(competition["name"], "utf-8") in response.data
+
+
+def test_under_the_limit_places_to_purchase(client, test_data, patch_server_data):
+    competition = test_data["competitions"][1]
+    club = test_data["clubs"][1]
+    places_required = 12
+
+    response = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competition["name"],
+            "club": club["name"],
+            "places": str(places_required),
+        },
+    )
+
+    assert response.status_code == 200
+    assert b"Great-booking complete!" in response.data
     assert bytes(club["name"], "utf-8") in response.data
     assert bytes(competition["name"], "utf-8") in response.data

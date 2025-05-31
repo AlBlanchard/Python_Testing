@@ -189,3 +189,49 @@ def test_booking_invalid_places_entry_functional(client, test_data):
     assert b"Invalid number of places entered." in response.data
     assert bytes(club_name, "utf-8") in response.data
     assert bytes(competition_name, "utf-8") in response.data
+
+
+def test_booking_above_limit_places_functional(client, test_data):
+    email = test_data["clubs"][1]["email"]
+    club_name = test_data["clubs"][1]["name"]
+    competition_name = test_data["competitions"][1]["name"]
+    places_required = 13
+
+    login_dashboard(client, email, test_data, follow_redirects=True)
+    response = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competition_name,
+            "club": club_name,
+            "places": str(places_required),
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"You cannot book more than 12 places at once." in response.data
+    assert bytes(club_name, "utf-8") in response.data
+    assert bytes(competition_name, "utf-8") in response.data
+
+
+def test_booking_under_limit_places_functional(client, test_data):
+    email = test_data["clubs"][1]["email"]
+    club_name = test_data["clubs"][1]["name"]
+    competition_name = test_data["competitions"][1]["name"]
+    places_required = 12
+
+    login_dashboard(client, email, test_data, follow_redirects=True)
+    response = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competition_name,
+            "club": club_name,
+            "places": str(places_required),
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Great-booking complete!" in response.data
+    assert bytes(club_name, "utf-8") in response.data
+    assert bytes(competition_name, "utf-8") in response.data
