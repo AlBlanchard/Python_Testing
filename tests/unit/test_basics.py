@@ -12,6 +12,7 @@ from server import (
     is_competition_in_past,
     is_not_enough_places_available,
     purchase_places_entry_validator,
+    is_above_the_limit_places,
 )
 
 
@@ -133,3 +134,15 @@ def test_purchase_places_entry_validator_invalid_non_integer():
 def test_purchase_places_entry_validator_invalid_none():
     purchase_data = None
     assert purchase_places_entry_validator(purchase_data) is None
+
+
+def test_is_above_the_limit_places():
+    places_required = 13
+    limit = 12
+    assert is_above_the_limit_places(places_required, limit) is True
+
+
+def test_is_not_above_the_limit_places():
+    places_required = 10
+    limit = 12
+    assert is_above_the_limit_places(places_required, limit) is False

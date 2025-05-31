@@ -77,6 +77,11 @@ def purchase_places_entry_validator(places_required):
         return None
 
 
+# Pas besoin d'une logique de validation, purchase_places_entry_validator s'en charge
+def is_above_the_limit_places(places_required, limit=12):
+    return places_required > limit
+
+
 # ----- Flask App Setup ----- #
 app = Flask(__name__)
 
@@ -141,21 +146,28 @@ def purchasePlaces():
         0
     ]
     club = [c for c in clubs if c["name"] == request.form["club"]][0]
-    placesRequired = request.form["places"]
+    # Cette forme permet d'ajouter une robustesse en cas de non reception du champ
+    placesRequired = request.form.get("places", "").strip()
     available = int(competition["numberOfPlaces"])
 
     places_required_int = purchase_places_entry_validator(placesRequired)
+
+    # Même si c'est bloqué par le client, on peut passer par postman, empêche cela définitivement
+    if is_competition_in_past(competition):
+        flash("You cannot book places for a past competition.")
+        return render_template("welcome.html", club=club, competitions=competitions)
 
     if places_required_int is None:
         flash("Invalid number of places entered.")
         return render_template("welcome.html", club=club, competitions=competitions)
 
-    if is_competition_in_past(competition):
-        flash("You cannot book places for a past competition.")
-        return render_template("welcome.html", club=club, competitions=competitions)
-
     if is_not_enough_places_available(competition, places_required_int):
         flash(f"You cannot book more than {available} places for this competition.")
+        return render_template("welcome.html", club=club, competitions=competitions)
+
+    # La limite peut être redéfinie en 2eme paramètre, limit=12 étant la valeur par défaut
+    if is_above_the_limit_places(places_required_int):
+        flash("You cannot book more than 12 places at once.")
         return render_template("welcome.html", club=club, competitions=competitions)
 
     competition["numberOfPlaces"] = available - places_required_int

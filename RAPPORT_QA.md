@@ -164,3 +164,47 @@ Empêcher les réservations avec des entrées invalides pour le nombre de places
 #### Fonctionnels
 
 - Parcours complet de réservation incluant la gestion des entrées
+
+---
+
+## FIX 4 : Limite de réservation à 12 places maximum
+
+**Branche** : `fix/purchase-limit-12-places`
+
+**Objectif** :
+Empêcher les utilisateurs de réserver plus de 12 places lors d'une réservation, même via des requêtes manuelles (sécurisation côté serveur).
+
+**Modifications** :
+
+- Création de la fonction `is_above_the_limit_places()` pour centraliser la logique de vérification du seuil maximum autorisé.
+- Ajout d'une vérification explicite dans la route `/purchasePlaces` pour bloquer toute tentative de réservation dépassant 12 places.
+- Affichage d'un message d'erreur spécifique en cas de dépassement.
+
+### Tests réalisés
+
+#### Unitaires
+
+- Tests des cas limites de la fonction `is_above_the_limit_places()` :
+  - Réservation supérieure à 12 places (renvoie True)
+  - Réservation à 12 places ou moins (renvoie False)
+
+#### Intégration
+
+- Simulation de soumission de formulaire avec :
+  - Demande de réservation de 13 places (dépassement)
+  - Demande de réservation de 12 places (valide)
+- Vérification de l'affichage des messages d'erreur ou de succès.
+
+#### Fonctionnels
+
+- Parcours utilisateur complet avec :
+  - Simulation de réservation de 13 places via le formulaire (blocage)
+  - Simulation de réservation de 12 places via le formulaire (acceptée)
+
+### Etat actuel
+
+- Tous les tests passent
+- La règle métier de la limite de 12 places maximum est correctement appliquée
+- Code prêt pour intégration continue
+
+---
