@@ -102,24 +102,23 @@ def places_json_update(competition, places_required):
     return competition
 
 
-def save_club_points(filename="clubs.json", clubs_data=None):
+def save_club_points(filename=CLUBS_DB_FILE, clubs_data=None):
     if clubs_data is None:
-        clubs_data = clubs
-
+        raise ValueError("clubs_data must be provided")
     with open(filename, "w", encoding="utf-8") as f:
         json.dump({"clubs": clubs_data}, f, indent=4, ensure_ascii=False)
 
 
-def save_competition_places(filename="competitions.json", competitions_data=None):
+def save_competition_places(filename=COMPET_DB_FILE, competitions_data=None):
     if competitions_data is None:
-        competitions_data = competitions
-
+        raise ValueError("competitions_data must be provided")
     with open(filename, "w", encoding="utf-8") as f:
         json.dump({"competitions": competitions_data}, f, indent=4, ensure_ascii=False)
 
 
 # ----- Flask App Setup ----- #
 app = Flask(__name__)
+app.secret_key = "something_special"
 
 
 # Reset DB with flask reset-db
@@ -129,12 +128,9 @@ def reset_db_cmd():
     click.echo("DB reinitialized from seed data.")
 
 
-# Reset DB if in development mode
-flask_env = os.getenv("FLASK_ENV", "").lower()
-if flask_env == "development" and os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+# Reset DB if in debug mode
+if app.debug:
     reset_db_from_seed()
-
-app.secret_key = "something_special"
 
 
 # ----- Flask Routes ----- #

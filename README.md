@@ -54,21 +54,21 @@ We use JSON files for data instead of a database, to keep the project light duri
    - On **Linux/macOS**:
      ```bash
      export FLASK_APP=server.py
-     export FLASK_ENV=development
+     export FLASK_DEBUG=1
      flask run
      ```
 
    - On **Windows CMD**:
      ```cmd
      set FLASK_APP=server.py
-     set FLASK_ENV=development
+     set FLASK_DEBUG=1
      flask run
      ```
 
    - On **Windows PowerShell**:
      ```powershell
      $env:FLASK_APP = "server.py"
-     $env:FLASK_ENV = "development"
+     $env:FLASK_DEBUG = 1
      flask run
      ```
 
@@ -116,15 +116,15 @@ Install with:
 pip install coverage
 ```
 
-Run tests with coverage:
+Run coverage:
 ```bash
-coverage run -m pytest
 coverage report -m
+coverage html
 ```
 
 ### Reset DB:
 
-The DB reset atomaticaly with FLASK_ENV=development
+The DB reset atomaticaly with FLASK_DEBUG=1
 Anyways, if something goes wrong, you can reset the DB :
 
 ```bash
